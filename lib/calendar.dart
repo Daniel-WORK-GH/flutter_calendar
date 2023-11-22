@@ -2,6 +2,10 @@ import 'package:calendar/calendarhelper.dart';
 import 'package:flutter/material.dart';
 
 class Calendar extends StatefulWidget {
+  final int? startyear;
+  final DateTime? startdate;
+  final int? endyear;
+
   final Color dayColor;
   final Color currentdayColor;
   final Color selecteddayColor;
@@ -9,6 +13,9 @@ class Calendar extends StatefulWidget {
   final Color backgroundColor;
 
   const Calendar({
+    this.startyear,
+    this.endyear,
+    this.startdate,
     this.dayColor = const Color(0xFFF8F9FA),
     this.currentdayColor = const Color(0xFFFFC300),
     this.selecteddayColor = const Color(0xFFFFD60A),
@@ -22,16 +29,22 @@ class Calendar extends StatefulWidget {
 }
 
 class _CalendarState extends State<Calendar> {
-  final CalendarDayData currentDay = CalendarDayData(
-    DateTime.now().year,
-    DateTime.now().month,
-    DateTime.now().day,
-  );
+  late final CalendarDayData currentDay = widget.startdate != null
+      ? CalendarDayData(
+          widget.startdate!.year,
+          widget.startdate!.month,
+          widget.startdate!.day,
+        )
+      : CalendarDayData(
+          DateTime.now().year,
+          DateTime.now().month,
+          DateTime.now().day,
+        );
 
   CalendarDayData? selectedDay;
 
-  int currentmonth = DateTime.now().month;
-  int currentyear = DateTime.now().year;
+  late int currentmonth = currentDay.month;
+  late int currentyear = currentDay.year;
 
   void ondayclick(CalendarDayData daydate) {
     selectedDay = daydate;
@@ -46,8 +59,13 @@ class _CalendarState extends State<Calendar> {
       currentyear--;
     }
 
-    if (currentyear < currentDay.year - 1) {
-      currentyear = currentDay.year - 1;
+    if (widget.startyear == null) {
+      if (currentyear < currentDay.year - 1) {
+        currentyear = currentDay.year - 1;
+        currentmonth = 1;
+      }
+    } else if (currentyear < widget.startyear!) {
+      currentyear = widget.startyear!;
       currentmonth = 1;
     }
 
@@ -61,8 +79,13 @@ class _CalendarState extends State<Calendar> {
       currentyear++;
     }
 
-    if (currentyear > currentDay.year + 1) {
-      currentyear = currentDay.year + 1;
+    if (widget.endyear == null) {
+      if (currentyear > currentDay.year + 1) {
+        currentyear = currentDay.year + 1;
+        currentmonth = 12;
+      }
+    } else if (currentyear > widget.endyear!) {
+      currentyear = widget.endyear!;
       currentmonth = 12;
     }
 
