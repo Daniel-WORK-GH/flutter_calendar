@@ -46,6 +46,8 @@ class _CalendarState extends State<Calendar> {
   late int currentmonth = currentDay.month;
   late int currentyear = currentDay.year;
 
+  bool swipedlastupdate = false;
+
   void ondayclick(CalendarDayData daydate) {
     selectedDay = daydate;
     setState(() {});
@@ -96,71 +98,93 @@ class _CalendarState extends State<Calendar> {
   Widget build(BuildContext context) {
     var monthdays = CalendarHelper.getDayRows(currentyear, currentmonth);
 
-    return Container(
-      color: widget.backgroundColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            color: widget.daynameColor,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CalendarNavArrow(
-                  const Icon(
-                    Icons.keyboard_arrow_left,
-                    size: 26,
-                    color: Colors.white,
-                  ),
-                  onclick: onleftnav,
-                ),
-                CalendarNavTitle(
-                  "${CalendarHelper.months[currentmonth - 1]} $currentyear",
-                ),
-                CalendarNavArrow(
-                  const Icon(
-                    Icons.keyboard_arrow_right,
-                    size: 26,
-                    color: Colors.white,
-                  ),
-                  onclick: onrightnav,
-                ),
-              ],
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (var dayname in CalendarHelper.daysshort)
-                CalendarWeekDay(dayname, widget.daynameColor)
-            ],
-          ),
-          for (var row in monthdays)
-            Expanded(
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onPanUpdate: (details) {
+        const int sensitivity = 5;
+
+        if (details.delta.dx > sensitivity) {
+          if (!swipedlastupdate) {
+            onleftnav();
+            swipedlastupdate = true;
+          }
+        }
+        if (details.delta.dx < -sensitivity) {
+          if (!swipedlastupdate) {
+            onrightnav();
+            swipedlastupdate = true;
+          }
+        }
+      },
+      onPanEnd: (details) {
+        swipedlastupdate = false;
+      },
+      child: Container(
+        color: widget.backgroundColor,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              color: widget.daynameColor,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (var day in row)
-                    if (selectedDay != null && day.equals(selectedDay!))
-                      CalendarSelectedDay(day, widget.selecteddayColor)
-                    else if (day.equals(currentDay))
-                      CalendarCurrentDay(
-                        day,
-                        widget.currentdayColor,
-                        onclick: ondayclick,
-                      )
-                    else
-                      CalendarDay(
-                        day,
-                        widget.dayColor,
-                        onclick: ondayclick,
-                      )
+                  CalendarNavArrow(
+                    const Icon(
+                      Icons.keyboard_arrow_left,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                    onclick: onleftnav,
+                  ),
+                  CalendarNavTitle(
+                    "${CalendarHelper.months[currentmonth - 1]} $currentyear",
+                  ),
+                  CalendarNavArrow(
+                    const Icon(
+                      Icons.keyboard_arrow_right,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                    onclick: onrightnav,
+                  ),
                 ],
               ),
             ),
-        ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var dayname in CalendarHelper.daysshort)
+                  CalendarWeekDay(dayname, widget.daynameColor)
+              ],
+            ),
+            for (var row in monthdays)
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var day in row)
+                      if (selectedDay != null && day.equals(selectedDay!))
+                        CalendarSelectedDay(day, widget.selecteddayColor)
+                      else if (day.equals(currentDay))
+                        CalendarCurrentDay(
+                          day,
+                          widget.currentdayColor,
+                          onclick: ondayclick,
+                        )
+                      else
+                        CalendarDay(
+                          day,
+                          widget.dayColor,
+                          onclick: ondayclick,
+                        )
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -251,6 +275,7 @@ class CalendarDay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
         onTapDown: (details) {
           if (onclick != null) onclick!(daydata);
         },
@@ -282,7 +307,10 @@ class CalendarCurrentDay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: GestureDetector(
-        onTapDown: (details) {
+        onHorizontalDragStart: (detail) {
+          if (onclick != null) onclick!(daydata);
+        },
+        onTapDown: (detail) {
           if (onclick != null) onclick!(daydata);
         },
         child: Container(
