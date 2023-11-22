@@ -12,7 +12,10 @@ class Calendar extends StatefulWidget {
   final Color daynameColor;
   final Color backgroundColor;
 
+  final void Function(CalendarDayData)? ondayclick;
+
   const Calendar({
+    this.ondayclick,
     this.startyear,
     this.endyear,
     this.startdate,
@@ -50,6 +53,11 @@ class _CalendarState extends State<Calendar> {
 
   void ondayclick(CalendarDayData daydate) {
     selectedDay = daydate;
+
+    if (widget.ondayclick != null) {
+      widget.ondayclick!(daydate);
+    }
+
     setState(() {});
   }
 

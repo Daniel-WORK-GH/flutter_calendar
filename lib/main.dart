@@ -17,7 +17,9 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(
           title: const Center(child: Text("Calendar example")),
         ),
-        body: Calendar(),
+        body: Calendar(
+          ondayclick: (p0) => print("on click"),
+        ),
       ),
     );
   }
